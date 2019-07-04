@@ -1,0 +1,31 @@
+type User {
+  id: ID! @id
+  refreshTokens: [RefreshToken!]! @relation(name: "RefreshTokenToUser", onDelete: CASCADE) 
+  name: String
+  email: String
+  phone: String! @unique
+  posts: [Post!]! @relation(name: "PostToUser", onDelete: CASCADE)
+  comments: [Comment!]! @relation(name: "CommentToUser", onDelete: CASCADE)
+}
+
+type Post {
+  id: ID! @id
+  title: String!
+  body: String!
+  published: Boolean!
+  author: User! @relation(name: "PostToUser", onDelete: SET_NULL)
+  comments: [Comment!]! @relation(name: "CommentToPost", onDelete: CASCADE)
+}
+
+type Comment {
+  id: ID! @id
+  text: String!
+  author: User! @relation(name: "CommentToUser", onDelete: SET_NULL)
+  post: Post!@relation(name: "CommentToPost", onDelete: SET_NULL)
+}
+
+type RefreshToken {
+  id: ID! @id
+  token: String!
+  owner: User! @relation(name: "RefreshTokenToUser", onDelete: SET_NULL)
+}
