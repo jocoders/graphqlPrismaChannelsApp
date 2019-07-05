@@ -11,4 +11,5 @@ hooks:
   post-deploy:
     - prisma generate
 
-endpoint: https://prisma-auth-app-8fd8167ed9.herokuapp.com/prisma-auth-app/dev
+
+endpoint: https://prisma-auth-app-e7b7691557.herokuapp.com/prisma-auth-app/dev
