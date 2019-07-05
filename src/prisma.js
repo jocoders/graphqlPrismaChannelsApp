@@ -4,7 +4,7 @@ import { fragmentReplacements } from './resolvers'
 const prisma = new Prisma({
   typeDefs: 'src/generated/prisma.graphql',
   //endpoint: 'http://localhost:4466',
-  endpoint: 'https://rn-city-dev-80415d33b2.herokuapp.com/rn-city-dev/dev',
+  endpoint: 'https://prisma-auth-app-8fd8167ed9.herokuapp.com/prisma-auth-app/dev',
   secret: 'thisisasecret',
   fragmentReplacements
 })

@@ -15,7 +15,6 @@ type Mutation {
     deleteUser: User!
     updateUser(data: UpdateUserInput!): User!
     createRefreshToken(userPhone: String!): RefreshToken!
-    #createRefreshToken(userId: String!): RefreshToken!
     createPost(data: CreatePostInput!): Post!
     deletePost(id: ID!): Post!
     updatePost(id: ID!, data: UpdatePostInput!): Post!
@@ -26,10 +25,10 @@ type Mutation {
 
 type User {
     id: ID!
-    refreshTokens: [RefreshToken!]!
     name: String
     phone: String! 
     email: String
+    refreshTokens: [RefreshToken!]!
     posts: [Post!]!
     comments: [Comment!]!
 }

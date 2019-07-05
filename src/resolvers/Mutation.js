@@ -86,30 +86,27 @@ const Mutation = {
     const currentTime = Date.now() / 1000
     console.log('currentTime', currentTime)
 
-    const decodeRefreshToken = await jwt.verify(args.data.refreshToken, 'thisisasecret')
+    const decodeRefreshToken = jwt.verify(args.data.refreshToken, 'thisisasecret')
     console.log('decodeRefreshToken', decodeRefreshToken)
 
-    const refreshToken = await prisma.query.refreshTokens({
+    const refreshToken = await prisma.query.refreshToken({
       where: {
-        owner: {
-          phone: decodeRefreshToken.userPhone
-        }
+        id: decodeAccessToken.refreshTokenId
       }
     })
     console.log('refreshToken', refreshToken)
-    console.log('refreshToken.id', refreshToken.id)
-    if (!refreshToken) {
-      log.warn('Wrong JWT token validation attempt')
-      throw new GQLError({ message: 'RefreshToken not found', code: 404 })
-    }
 
-    if (decodeAccessToken.exp < currentTime) {
-      const deleteRefreshToken = prisma.mutation.deleteRefreshToken({
+    if (!refreshToken) {
+      //log.warn('Wrong JWT token validation attempt')
+      //throw new GQLError({ message: 'RefreshToken not found', code: 404 })
+      console.log('Not refreshToken')
+    } else if (decodeAccessToken.exp < currentTime) {
+      console.log('Go to!!!')
+      const deleteRefreshToken = await prisma.mutation.deleteRefreshToken({
         where: {
           id: refreshToken.id
         }
       })
-      console.log('deleteRefreshToken', deleteRefreshToken)
       const newRefreshToken = await prisma.mutation.createRefreshToken({
         data: {
           token: generateRefreshToken(user.phone),
@@ -120,9 +117,14 @@ const Mutation = {
           }
         }
       })
+      console.log('newRefreshToken', newRefreshToken)
+      console.log('newRefreshToken.id', newRefreshToken.id)
+      const newAccessToken = generateAccessToken(newRefreshToken.id)
+      console.log('newAccessToken', newAccessToken)
       return {
-        refreshToken,
-        accessToken: generateAccessToken(newRefreshToken.id)
+        user,
+        refreshToken: newRefreshToken.token,
+        accessToken: newAccessToken
       }
     }
   },

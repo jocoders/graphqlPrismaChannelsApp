@@ -1,5 +1,5 @@
 #endpoint: ${env:PRISMA_ENDPOINT} 
-endpoint: https://rn-city-dev-80415d33b2.herokuapp.com/rn-city-dev/dev
+#endpoint: https://rn-city-dev-80415d33b2.herokuapp.com/rn-city-dev/dev
 
 datamodel: datamodel.prisma
 secret: thisisasecret
@@ -10,6 +10,5 @@ generate:
 hooks:
   post-deploy:
     - prisma generate
-#generate:
-#  - generator: graphql-schema 
-#    output: ../src/generated
+
+endpoint: https://prisma-auth-app-8fd8167ed9.herokuapp.com/prisma-auth-app/dev
