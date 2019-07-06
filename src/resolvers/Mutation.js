@@ -78,7 +78,39 @@ const Mutation = {
     }
   },
 
+  async signOut(parent, args, { prisma }, info) {
+    console.log('args.accessToken', args.accessToken)
+    console.log('args.refreshToken', args.refreshToken)
+    const decodeAccessToken = jwtDecode(args.data.accessToken)
+    console.log('decodeAccessToken', decodeAccessToken)
+    const verifyRefreshToken = jwt.verify(args.data.refreshToken, 'thisisasecret')
+
+    const user = await prisma.query.user({
+      where: {
+        id: decodeAccessToken.userId
+      }
+    })
+    console.log('user', user)
+
+    if (!user) {
+      log.warn('Wrong JWT token validation attempt')
+      throw new GQLError({ message: 'User not found', code: 404 })
+    }
+
+    const deleteRefreshToken = await prisma.mutation.deleteRefreshToken({
+      where: {
+        id: decodeAccessToken.refreshTokenId
+      }
+    })
+    return {
+      user: user,
+      signedOut: true
+    }
+  },
+
   async updateTokens(parent, args, { prisma }, info) {
+    console.log('args.data.accessToken', args.data.accessToken)
+    console.log('args.data.refreshToken', args.data.refreshToken)
     const decodeAccessToken = jwtDecode(args.data.accessToken)
     console.log('decodeAccessToken', decodeAccessToken)
 
@@ -92,17 +124,17 @@ const Mutation = {
     })
     console.log('user', user)
 
+    if (!user) {
+      log.warn('Wrong JWT token validation attempt')
+      throw new GQLError({ message: 'User not found', code: 404 })
+    }
+
     if (decodeAccessToken.exp > currentTime) {
       return {
         user: user,
         refreshToken: args.data.refreshToken,
         accessToken: args.data.accessToken
       }
-    }
-
-    if (!user) {
-      log.warn('Wrong JWT token validation attempt')
-      throw new GQLError({ message: 'User not found', code: 404 })
     }
 
     const decodeRefreshToken = jwt.verify(args.data.refreshToken, 'thisisasecret')
@@ -116,10 +148,9 @@ const Mutation = {
     console.log('refreshToken', refreshToken)
 
     if (!refreshToken) {
-      //log.warn('Wrong JWT token validation attempt')
-      //throw new GQLError({ message: 'RefreshToken not found', code: 404 })
-      console.log('Not refreshToken')
-    } else if (decodeAccessToken.exp < currentTime) {
+      log.warn('Wrong JWT token validation attempt')
+      throw new GQLError({ message: 'RefreshToken not found', code: 404 })
+    } else if (decodeAccessToken.exp < currentTime && args.data.refreshToken === refreshToken.token) {
       console.log('Go to!!!')
       const deleteRefreshToken = await prisma.mutation.deleteRefreshToken({
         where: {
@@ -138,12 +169,13 @@ const Mutation = {
       })
       console.log('newRefreshToken', newRefreshToken)
       console.log('newRefreshToken.id', newRefreshToken.id)
-      console.log('newAccessToken', newAccessToken)
       return {
         user,
         refreshToken: newRefreshToken.token,
-        accessToken: generateAccessToken(newRefreshToken.id)
+        accessToken: generateAccessToken(user.id, newRefreshToken.id)
       }
+    } else {
+      throw new Error('Invalid credentials!')
     }
   },
 

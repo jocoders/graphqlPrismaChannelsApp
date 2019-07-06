@@ -10,6 +10,7 @@ type Query {
 
 type Mutation {
     signIn(code: String!): AuthPayload!
+    signOut(data: UpdateTokensInput!): SignOutPayload! 
     updateTokens(data: UpdateTokensInput!): AuthPayload!
     createUser(data: CreateUserInput!): AuthPayload!
     deleteUser: User!
@@ -37,6 +38,11 @@ type AuthPayload {
     user: User!
     accessToken: String!
     refreshToken: String! 
+}
+
+type SignOutPayload {
+  user: User!
+  signedOut: Boolean!
 }
 
 type Subscription {
