@@ -46,7 +46,7 @@ const Mutation = {
       })
       const refreshToken = await prisma.mutation.createRefreshToken({
         data: {
-          token: generateRefreshToken(createdUser.phone),
+          token: generateRefreshToken(createdUser.id),
           owner: {
             connect: {
               id: createdUser.id
@@ -62,7 +62,7 @@ const Mutation = {
     } else {
       const refreshToken = await prisma.mutation.createRefreshToken({
         data: {
-          token: generateRefreshToken(user.phone),
+          token: generateRefreshToken(user.id),
           owner: {
             connect: {
               id: user.id
@@ -79,15 +79,13 @@ const Mutation = {
   },
 
   async signOut(parent, args, { prisma }, info) {
-    console.log('args.accessToken', args.accessToken)
     console.log('args.refreshToken', args.refreshToken)
-    const decodeAccessToken = jwtDecode(args.data.accessToken)
-    console.log('decodeAccessToken', decodeAccessToken)
-    const verifyRefreshToken = jwt.verify(args.data.refreshToken, 'thisisasecret')
+    console.log('args.refreshTokenId', args.refreshTokenId)
+    const verifyRefreshToken = jwt.verify(args.refreshToken, 'thisisasecret')
 
     const user = await prisma.query.user({
       where: {
-        id: decodeAccessToken.userId
+        id: verifyRefreshToken.userId
       }
     })
     console.log('user', user)
@@ -99,7 +97,7 @@ const Mutation = {
 
     const deleteRefreshToken = await prisma.mutation.deleteRefreshToken({
       where: {
-        id: decodeAccessToken.refreshTokenId
+        id: args.refreshTokenId
       }
     })
     return {
@@ -109,17 +107,11 @@ const Mutation = {
   },
 
   async updateTokens(parent, args, { prisma }, info) {
-    console.log('args.data.accessToken', args.data.accessToken)
-    console.log('args.data.refreshToken', args.data.refreshToken)
-    const decodeAccessToken = jwtDecode(args.data.accessToken)
-    console.log('decodeAccessToken', decodeAccessToken)
-
-    const currentTime = Date.now() / 1000
-    console.log('currentTime', currentTime)
-
+    console.log('args.refreshToken', args.refreshToken)
+    const decodeRefreshToken = jwt.verify(args.refreshToken, 'thisisasecret')
     const user = await prisma.query.user({
       where: {
-        id: decodeAccessToken.userId
+        id: decodeRefreshToken.userId
       }
     })
     console.log('user', user)
@@ -129,28 +121,18 @@ const Mutation = {
       throw new GQLError({ message: 'User not found', code: 404 })
     }
 
-    if (decodeAccessToken.exp > currentTime) {
-      return {
-        user: user,
-        refreshToken: args.data.refreshToken,
-        accessToken: args.data.accessToken
-      }
-    }
-
-    const decodeRefreshToken = jwt.verify(args.data.refreshToken, 'thisisasecret')
-    console.log('decodeRefreshToken', decodeRefreshToken)
-
     const refreshToken = await prisma.query.refreshToken({
       where: {
-        id: decodeAccessToken.refreshTokenId
+        id: args.refreshTokenId
       }
     })
     console.log('refreshToken', refreshToken)
 
     if (!refreshToken) {
       log.warn('Wrong JWT token validation attempt')
-      throw new GQLError({ message: 'RefreshToken not found', code: 404 })
-    } else if (decodeAccessToken.exp < currentTime && args.data.refreshToken === refreshToken.token) {
+      throw new GQLError({ message: 'User not found', code: 404 })
+    }
+    if (args.refreshToken === refreshToken.token) {
       console.log('Go to!!!')
       const deleteRefreshToken = await prisma.mutation.deleteRefreshToken({
         where: {
@@ -159,7 +141,7 @@ const Mutation = {
       })
       const newRefreshToken = await prisma.mutation.createRefreshToken({
         data: {
-          token: generateRefreshToken(user.phone),
+          token: generateRefreshToken(user.id),
           owner: {
             connect: {
               id: user.id
@@ -174,16 +156,16 @@ const Mutation = {
         refreshToken: newRefreshToken.token,
         accessToken: generateAccessToken(user.id, newRefreshToken.id)
       }
-    } else {
-      throw new Error('Invalid credentials!')
     }
   },
 
   async createUser(parent, args, { prisma }, info) {
     const phoneTaken = await prisma.exists.User({ phone: args.data.phone })
     if (phoneTaken) {
-      throw new Error('Phone already taken')
+      log.warn('Phone alredy taken')
+      throw new GQLError({ message: 'Phone already taken', code: 404 })
     }
+
     const user = await prisma.mutation.createUser({
       data: {
         phone: args.data.phone
@@ -192,7 +174,7 @@ const Mutation = {
     console.log('user', user)
     const refreshToken = await prisma.mutation.createRefreshToken({
       data: {
-        token: generateRefreshToken(args.data.phone),
+        token: generateRefreshToken(user.id),
         owner: {
           connect: {
             id: user.id

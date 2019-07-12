@@ -10,12 +10,12 @@ type Query {
 
 type Mutation {
     signIn(code: String!): AuthPayload!
-    signOut(data: UpdateTokensInput!): SignOutPayload! 
-    updateTokens(data: UpdateTokensInput!): AuthPayload!
+    signOut(refreshToken: String!, refreshTokenId: String!): SignOutPayload! 
+    updateTokens(refreshToken: String!, refreshTokenId: String!): AuthPayload!
     createUser(data: CreateUserInput!): AuthPayload!
     deleteUser: User!
     updateUser(data: UpdateUserInput!): User!
-    createRefreshToken(userPhone: String!): RefreshToken!
+    createRefreshToken(userId: String!): RefreshToken!
     createPost(data: CreatePostInput!): Post!
     deletePost(id: ID!): Post!
     updatePost(id: ID!, data: UpdatePostInput!): Post!
@@ -55,11 +55,6 @@ input CreateUserInput {
     name: String
     email: String
     phone: String!
-}
-
-input UpdateTokensInput {
-    accessToken: String!    
-    refreshToken: String!
 }
 
 input CreateAccessTokenInput {

@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 
-const generateRefreshToken = (userPhone) => {
-  const createdToken = jwt.sign({ userPhone }, 'thisisasecret', { expiresIn: '60 days' })
+const generateRefreshToken = (userId) => {
+  const createdToken = jwt.sign({ userId }, 'thisisasecret', { expiresIn: '60 days' })
   return createdToken
 }
 
