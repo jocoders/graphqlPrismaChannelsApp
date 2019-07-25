@@ -13,7 +13,6 @@ const FB_ME_URL = 'https://graph.accountkit.com/v1.3/me'
 
 async function getFBAccessTokenByFBCode(code) {
   console.log('code', code)
-  //const url = `${FB_ACCESS_URL}?grant_type=authorization_code&code=${code}&access_token=AA|${FB_APP_ID}|${FB_APP_SECRET}`
   const url = `https://graph.accountkit.com/v1.3/access_token?grant_type=authorization_code&code=${code}&access_token=AA|${FB_APP_ID}|${FB_APP_SECRET}`
   const accessFBToken = (await (await fetch(url)).json()).access_token
   return accessFBToken
@@ -26,86 +25,240 @@ async function getPhoneByFacebookAccessToken(token, appSecret) {
 }
 
 const Mutation = {
-  async signIn(parent, { code }, { prisma }, info) {
-    const accessFBToken = await getFBAccessTokenByFBCode(code)
-    console.log('accessFBToken', accessFBToken)
-    const phone = await getPhoneByFacebookAccessToken(accessFBToken)
-    console.log('phone', phone)
-    const user = await prisma.query.user({
-      where: {
-        phone
-      }
-    })
-    console.log('user', user)
+  async createChannel(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request)
 
-    if (!user) {
-      const createdUser = await prisma.mutation.createUser({
+    return await prisma.mutation.createChannel(
+      {
         data: {
-          phone
-        }
-      })
-      const refreshToken = await prisma.mutation.createRefreshToken({
-        data: {
-          token: generateRefreshToken(createdUser.id),
-          owner: {
+          title: args.data.title,
+          cover: args.data.cover,
+          creator: {
             connect: {
-              id: createdUser.id
+              id: userId
             }
           }
         }
-      })
-      return {
-        user: createdUser,
-        refreshToken: refreshToken.token,
-        accessToken: generateAccessToken(createdUser.id, refreshToken.id)
-      }
-    } else {
-      const refreshToken = await prisma.mutation.createRefreshToken({
-        data: {
-          token: generateRefreshToken(user.id),
-          owner: {
-            connect: {
-              id: user.id
-            }
-          }
-        }
-      })
-      return {
-        user: user,
-        refreshToken: refreshToken.token,
-        accessToken: generateAccessToken(user.id, refreshToken.id)
-      }
-    }
+      },
+      info
+    )
   },
+  async createMessage(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request)
+    const topicExists = await prisma.exists.Topic({
+      id: args.data.topic
+    })
 
-  async signOut(parent, args, { prisma }, info) {
-    console.log('args.refreshToken', args.refreshToken)
-    console.log('args.refreshTokenId', args.refreshTokenId)
-    const verifyRefreshToken = jwt.verify(args.refreshToken, 'thisisasecret')
+    if (!topicExists) {
+      throw new Error('Unable to find topic')
+    }
 
-    const user = await prisma.query.user({
-      where: {
-        id: verifyRefreshToken.userId
+    return prisma.mutation.createMessage(
+      {
+        data: {
+          text: args.data.text,
+          creator: {
+            connect: {
+              id: userId
+            }
+          },
+          topic: {
+            connect: {
+              id: args.data.topic
+            }
+          }
+        }
+      },
+      info
+    )
+  },
+  async createUser(parent, args, { prisma }, info) {
+    const phoneTaken = await prisma.exists.User({ phone: args.data.phone })
+    if (phoneTaken) {
+      log.warn('Phone alredy taken')
+      throw new GQLError({ message: 'Phone already taken', code: 404 })
+    }
+
+    const user = await prisma.mutation.createUser({
+      data: {
+        phone: args.data.phone
       }
     })
     console.log('user', user)
-
-    if (!user) {
-      log.warn('Wrong JWT token validation attempt')
-      throw new GQLError({ message: 'User not found', code: 404 })
-    }
-
-    const deleteRefreshToken = await prisma.mutation.deleteRefreshToken({
-      where: {
-        id: args.refreshTokenId
+    const refreshToken = await prisma.mutation.createRefreshToken({
+      data: {
+        token: generateRefreshToken(user.id),
+        owner: {
+          connect: {
+            id: user.id
+          }
+        }
       }
     })
+    console.log('refreshToken', refreshToken)
     return {
-      user: user,
-      signedOut: true
+      user,
+      refreshToken: refreshToken.token,
+      accessToken: generateAccessToken(user.id, refreshToken.id)
     }
   },
+  async createTopic(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request)
+    const channelExists = await prisma.exists.Channel({
+      id: args.data.channel
+    })
 
+    if (!channelExists) {
+      throw new Error('Unable to find channel')
+    }
+
+    return prisma.mutation.createTopic(
+      {
+        data: {
+          title: args.data.title,
+          avatar: args.data.avatar,
+          creator: {
+            connect: {
+              id: userId
+            }
+          },
+          channel: {
+            connect: {
+              id: args.data.channel
+            }
+          }
+        }
+      },
+      info
+    )
+  },
+
+  async deleteChannel(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request)
+    const channelExists = await prisma.exists.Channel({
+      id: args.id,
+      creator: {
+        id: userId
+      }
+    })
+
+    if (!channelExists) {
+      throw new Error('Unable to delete channel')
+    }
+
+    return prisma.mutation.deleteChannel(
+      {
+        where: {
+          id: args.id
+        }
+      },
+      info
+    )
+  },
+  async deleteMessage(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request)
+    const messageExists = await prisma.exists.Message({
+      id: args.id,
+      creator: {
+        id: userId
+      }
+    })
+
+    if (!messageExists) {
+      throw new Error('Unable to delete message')
+    }
+
+    return prisma.mutation.deleteMessage(
+      {
+        where: {
+          id: args.id
+        }
+      },
+      info
+    )
+  },
+  deleteUser(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request)
+    console.log('userId', userId)
+
+    return prisma.mutation.deleteUser(
+      {
+        where: {
+          id: userId
+        }
+      },
+      info
+    )
+  },
+  async deleteTopic(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request)
+    const topicExists = await prisma.exists.Topic({
+      id: args.id,
+      creator: {
+        id: userId
+      }
+    })
+
+    if (!topicExists) {
+      throw new Error('Unable to delete topic')
+    }
+
+    return prisma.mutation.deleteTopic(
+      {
+        where: {
+          id: args.id
+        }
+      },
+      info
+    )
+  },
+
+  async updateChannel(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request)
+    const channelExists = await prisma.exists.Channel({
+      id: args.id,
+      creator: {
+        id: userId
+      }
+    })
+
+    if (!channelExists) {
+      throw new Error('Unable to update channel')
+    }
+
+    return prisma.mutation.updateChannel(
+      {
+        where: {
+          id: args.id
+        },
+        data: args.data
+      },
+      info
+    )
+  },
+  async updateMessage(parent, args, { prisma, request }, info) {
+    const userId = getUserId(request)
+    const messageExists = await prisma.exists.Message({
+      id: args.id,
+      creator: {
+        id: userId
+      }
+    })
+
+    if (!messageExists) {
+      throw new Error('Unable to update message')
+    }
+
+    return prisma.mutation.updateMessage(
+      {
+        where: {
+          id: args.id
+        },
+        data: args.data
+      },
+      info
+    )
+  },
   async updateTokens(parent, args, { prisma }, info) {
     console.log('args.refreshToken', args.refreshToken)
     const decodeRefreshToken = jwt.verify(args.refreshToken, 'thisisasecret')
@@ -158,52 +311,29 @@ const Mutation = {
       }
     }
   },
-
-  async createUser(parent, args, { prisma }, info) {
-    const phoneTaken = await prisma.exists.User({ phone: args.data.phone })
-    if (phoneTaken) {
-      log.warn('Phone alredy taken')
-      throw new GQLError({ message: 'Phone already taken', code: 404 })
-    }
-
-    const user = await prisma.mutation.createUser({
-      data: {
-        phone: args.data.phone
-      }
-    })
-    console.log('user', user)
-    const refreshToken = await prisma.mutation.createRefreshToken({
-      data: {
-        token: generateRefreshToken(user.id),
-        owner: {
-          connect: {
-            id: user.id
-          }
-        }
-      }
-    })
-    console.log('refreshToken', refreshToken)
-    return {
-      user,
-      refreshToken: refreshToken.token,
-      accessToken: generateAccessToken(user.id, refreshToken.id)
-    }
-  },
-
-  deleteUser(parent, args, { prisma, request }, info) {
+  async updateTopic(parent, args, { prisma, request }, info) {
     const userId = getUserId(request)
-    console.log('userId', userId)
+    const topicExists = await prisma.exists.Topic({
+      id: args.id,
+      creator: {
+        id: userId
+      }
+    })
 
-    return prisma.mutation.deleteUser(
+    if (!topicExists) {
+      throw new Error('Unable to update topic')
+    }
+
+    return prisma.mutation.updateTopic(
       {
         where: {
-          id: userId
-        }
+          id: args.id
+        },
+        data: args.data
       },
       info
     )
   },
-
   updateUser(parent, args, { prisma, request }, info) {
     const userId = getUserId(request)
 
@@ -218,159 +348,83 @@ const Mutation = {
     )
   },
 
-  createPost(parent, args, { prisma, request }, info) {
-    const userId = getUserId(request)
+  async signIn(parent, { code }, { prisma }, info) {
+    const accessFBToken = await getFBAccessTokenByFBCode(code)
+    console.log('accessFBToken', accessFBToken)
+    const phone = await getPhoneByFacebookAccessToken(accessFBToken)
+    console.log('phone', phone)
+    const user = await prisma.query.user({
+      where: {
+        phone
+      }
+    })
+    console.log('user', user)
 
-    return prisma.mutation.createPost(
-      {
+    if (!user) {
+      const createdUser = await prisma.mutation.createUser({
         data: {
-          title: args.data.title,
-          body: args.data.body,
-          published: args.data.published,
-          author: {
-            connect: {
-              id: userId
-            }
-          }
+          phone
         }
-      },
-      info
-    )
-  },
-
-  async deletePost(parent, args, { prisma, request }, info) {
-    const userId = getUserId(request)
-    const postExists = await prisma.exists.Post({
-      id: args.id,
-      author: {
-        id: userId
-      }
-    })
-
-    if (!postExists) {
-      throw new Error('Unable to delete post')
-    }
-
-    return prisma.mutation.deletePost(
-      {
-        where: {
-          id: args.id
-        }
-      },
-      info
-    )
-  },
-
-  async updatePost(parent, args, { prisma, request }, info) {
-    const userId = getUserId(request)
-    const postExists = await prisma.exists.Post({
-      id: args.id,
-      author: {
-        id: userId
-      }
-    })
-    const isPublished = await prisma.exists.Post({
-      id: args.id,
-      published: true
-    })
-
-    if (!postExists) {
-      throw new Error('Unable to update post')
-    }
-
-    if (isPublished && args.data.published === false) {
-      await prisma.mutation.deleteManyComments({
-        where: { post: { id: args.id } }
       })
-    }
-
-    return prisma.mutation.updatePost(
-      {
-        where: {
-          id: args.id
-        },
-        data: args.data
-      },
-      info
-    )
-  },
-
-  async createComment(parent, args, { prisma, request }, info) {
-    const userId = getUserId(request)
-    const postExists = await prisma.exists.Post({
-      id: args.data.post,
-      published: true
-    })
-
-    if (!postExists) {
-      throw new Error('Unable to find post')
-    }
-
-    return prisma.mutation.createComment(
-      {
+      const refreshToken = await prisma.mutation.createRefreshToken({
         data: {
-          text: args.data.text,
-          author: {
+          token: generateRefreshToken(createdUser.id),
+          owner: {
             connect: {
-              id: userId
-            }
-          },
-          post: {
-            connect: {
-              id: args.data.post
+              id: createdUser.id
             }
           }
         }
-      },
-      info
-    )
-  },
-
-  async deleteComment(parent, args, { prisma, request }, info) {
-    const userId = getUserId(request)
-    const commentExists = await prisma.exists.Comment({
-      id: args.id,
-      author: {
-        id: userId
+      })
+      return {
+        user: createdUser,
+        refreshToken: refreshToken.token,
+        accessToken: generateAccessToken(createdUser.id, refreshToken.id)
       }
-    })
-
-    if (!commentExists) {
-      throw new Error('Unable to delete comment')
-    }
-
-    return prisma.mutation.deleteComment(
-      {
-        where: {
-          id: args.id
+    } else {
+      const refreshToken = await prisma.mutation.createRefreshToken({
+        data: {
+          token: generateRefreshToken(user.id),
+          owner: {
+            connect: {
+              id: user.id
+            }
+          }
         }
-      },
-      info
-    )
+      })
+      return {
+        user: user,
+        refreshToken: refreshToken.token,
+        accessToken: generateAccessToken(user.id, refreshToken.id)
+      }
+    }
   },
+  async signOut(parent, args, { prisma }, info) {
+    console.log('args.refreshToken', args.refreshToken)
+    console.log('args.refreshTokenId', args.refreshTokenId)
+    const verifyRefreshToken = jwt.verify(args.refreshToken, 'thisisasecret')
 
-  async updateComment(parent, args, { prisma, request }, info) {
-    const userId = getUserId(request)
-    const commentExists = await prisma.exists.Comment({
-      id: args.id,
-      author: {
-        id: userId
+    const user = await prisma.query.user({
+      where: {
+        id: verifyRefreshToken.userId
       }
     })
+    console.log('user', user)
 
-    if (!commentExists) {
-      throw new Error('Unable to update comment')
+    if (!user) {
+      log.warn('Wrong JWT token validation attempt')
+      throw new GQLError({ message: 'User not found', code: 404 })
     }
 
-    return prisma.mutation.updateComment(
-      {
-        where: {
-          id: args.id
-        },
-        data: args.data
-      },
-      info
-    )
+    const deleteRefreshToken = await prisma.mutation.deleteRefreshToken({
+      where: {
+        id: args.refreshTokenId
+      }
+    })
+    return {
+      user: user,
+      signedOut: true
+    }
   }
 }
 

@@ -1,13 +1,12 @@
 import getUserId from '../utils/getUserId'
 
 const User = {
-  posts: {
+  channels: {
     fragment: 'fragment userId on User { id }',
     resolve(parent, args, { prisma }, info) {
-      return prisma.query.posts({
+      return prisma.query.channels({
         where: {
-          published: true,
-          author: {
+          creator: {
             id: parent.id
           }
         }

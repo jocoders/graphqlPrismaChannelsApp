@@ -1,130 +1,170 @@
-type Query {
-    users(query: String): [User!]!
-    user(query: String): User!
-    posts(query: String): [Post!]!
-    myPosts(query: String): [Post!]!
-    comments: [Comment!]!
-    me: User!
-    post(id: ID!): Post!
-}
+scalar DateTime
 
-type Mutation {
-    signIn(code: String!): AuthPayload!
-    signOut(refreshToken: String!, refreshTokenId: String!): SignOutPayload! 
-    updateTokens(refreshToken: String!, refreshTokenId: String!): AuthPayload!
-    createUser(data: CreateUserInput!): AuthPayload!
-    deleteUser: User!
-    updateUser(data: UpdateUserInput!): User!
-    createRefreshToken(userId: String!): RefreshToken!
-    createPost(data: CreatePostInput!): Post!
-    deletePost(id: ID!): Post!
-    updatePost(id: ID!, data: UpdatePostInput!): Post!
-    createComment(data: CreateCommentInput!): Comment!
-    deleteComment(id: ID!): Comment!
-    updateComment(id: ID!, data: UpdateCommentInput!): Comment!
-}
-
-type User {
-    id: ID!
-    name: String
-    phone: String! 
-    email: String
-    refreshTokens: [RefreshToken!]!
-    posts: [Post!]!
-    comments: [Comment!]!
-}
-
-type AuthPayload {
-    user: User!
-    accessToken: String!
-    refreshToken: String! 
-}
-
-type SignOutPayload {
-  user: User!
-  signedOut: Boolean!
-}
-
-type Subscription {
-    comment(postId: ID!): CommentSubscriptionPayload!
-    post: PostSubscriptionPayload!
-    myPost: PostSubscriptionPayload!
-}
-
-input CreateUserInput {
-    name: String
-    email: String
-    phone: String!
+enum MutationType {
+    CREATED
+    DELETED
+    UPDATED
 }
 
 input CreateAccessTokenInput {
-  userId: String!
   refreshTokenId: String!
+  userId: String!
+}
+
+input CreateChannelInput {
+    cover: String!
+    title: String!
+}
+
+input CreateMessageInput {
+  text: String!
+  topic: ID!
+}
+
+input CreateTopicInput {
+  avatar: String!
+  channel: ID!
+  title: String!
+}
+
+input CreateUserInput {
+    email: String
+    name: String
+    phone: String!
+}
+
+input UpdateChannelInput {
+    cover: String
+    title: String
+}
+
+input UpdateMessageInput {
+  text: String!
+}
+
+input UpdateTopicInput {
+  avatar: String
+  title: String
 }
 
 input UpdateUserInput {
-    name: String
+    avatar: String 
+    cover: String
     email: String
+    name: String
     phone: String
+    stars: Int
 }
 
-input CreatePostInput {
-    title: String!
-    body: String!
-    published: Boolean!
+type AuthPayload {
+    accessToken: String!
+    refreshToken: String! 
+    user: User!
 }
 
-input UpdatePostInput {
-    title: String
-    body: String
-    published: Boolean
-}
-
-input CreateCommentInput {
-    text: String!
-    post: ID!
-}
-
-input UpdateCommentInput {
-    text: String
-}
-
-
-type Post {
+type Channel {
     id: ID!
+    cover: String!
+    creator: User!
+    createdAt: DateTime! 
+    stars: Int
     title: String!
-    body: String!
-    published: Boolean!
-    author: User!
-    comments: [Comment!]!
+    topics: [Topic!]!
+}
+
+type ChannelSubscriptionPayload {
+    mutation: MutationType!
+    node: Channel 
+}
+
+type Message {
+  creator: User!
+  createdAt: DateTime! 
+  id: ID!
+  text: String!
+  topic: Topic!
+}
+
+type Mutation {
+    createChannel(data: CreateChannelInput!): Channel!
+    createMessage(data: CreateMessageInput!): Message!
+    createRefreshToken(userId: String!): RefreshToken!
+    createTopic(data: CreateTopicInput!): Topic!
+    createUser(data: CreateUserInput!): AuthPayload!
+
+    deleteChannel(id: ID!): Channel!
+    deleteMessage(id: ID!): Message!
+    deleteTopic(id: ID!): Topic!
+    deleteUser: User!
+
+    signIn(code: String!): AuthPayload!
+    signOut(refreshToken: String!, refreshTokenId: String!): SignOutPayload! 
+
+    updateChannel(id: ID!, data: UpdateChannelInput!): Channel!
+    updateMessage(id: ID!, data: UpdateMessageInput!): Message!
+    updateTokens(refreshToken: String!, refreshTokenId: String!): AuthPayload!
+    updateTopic(id: ID!, data: UpdateTopicInput!): Topic!
+    updateUser(data: UpdateUserInput!): User!
+}
+
+type Query {
+    channel(id: ID!): Channel!
+    channels(query: String): [Channel!]!
+
+    me: User!
+    myChannels(query: String): [Channel!]!
+    myTopics(query: String): [Topic!]!
+
+    topics: [Topic!]!
+
+    user(query: String): User!
+    users(query: String): [User!]!
 }
 
 type RefreshToken {
   id: ID!
-  token: String!
   owner: User!
+  token: String!
 }
 
-type Comment {
+type SignOutPayload {
+  signedOut: Boolean!
+  user: User!
+}
+
+type Subscription {
+    channel: ChannelSubscriptionPayload!
+    myChannel: ChannelSubscriptionPayload!
+    topic(channelId: ID!): TopicSubscriptionPayload!
+}
+
+type Topic {
+    avatar: String!
+    channel: Channel!
+    createdAt: DateTime! 
+    creator: User!
     id: ID!
-    text: String!
-    author: User!
-    post: Post!
+    messages: [Message!]!
+    stars: Int
+    title: String!
 }
 
-enum MutationType {
-    CREATED
-    UPDATED
-    DELETED
-}
-
-
-type PostSubscriptionPayload {
+type TopicSubscriptionPayload {
     mutation: MutationType!
-    node: Post
+    node: Topic
 }
 
-type CommentSubscriptionPayload {
-    mutation: MutationType!
-    node: Comment
+type User {
+    avatar: String 
+    channels: [Channel!]!
+    cover: String 
+    createdAt: DateTime! 
+    email: String
+    id: ID!
+    messages: [Message!]!
+    name: String
+    phone: String! 
+    refreshTokens: [RefreshToken!]!
+    stars: Int
+    topics: [Topic!]!
 }

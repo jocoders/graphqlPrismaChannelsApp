@@ -1,12 +1,16 @@
-type AggregateComment {
+type AggregateChannel {
   count: Int!
 }
 
-type AggregatePost {
+type AggregateMessage {
   count: Int!
 }
 
 type AggregateRefreshToken {
+  count: Int!
+}
+
+type AggregateTopic {
   count: Int!
 }
 
@@ -18,66 +22,84 @@ type BatchPayload {
   count: Long!
 }
 
-type Comment {
+type Channel {
   id: ID!
-  text: String!
-  author: User!
-  post: Post!
+  createdAt: DateTime!
+  title: String!
+  cover: String!
+  stars: Int
+  creator: User!
+  topics(where: TopicWhereInput, orderBy: TopicOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Topic!]
 }
 
-type CommentConnection {
+type ChannelConnection {
   pageInfo: PageInfo!
-  edges: [CommentEdge]!
-  aggregate: AggregateComment!
+  edges: [ChannelEdge]!
+  aggregate: AggregateChannel!
 }
 
-input CommentCreateInput {
+input ChannelCreateInput {
   id: ID
-  text: String!
-  author: UserCreateOneWithoutCommentsInput!
-  post: PostCreateOneWithoutCommentsInput!
+  title: String!
+  cover: String!
+  stars: Int
+  creator: UserCreateOneWithoutChannelsInput!
+  topics: TopicCreateManyWithoutChannelInput
 }
 
-input CommentCreateManyWithoutAuthorInput {
-  create: [CommentCreateWithoutAuthorInput!]
-  connect: [CommentWhereUniqueInput!]
+input ChannelCreateManyWithoutCreatorInput {
+  create: [ChannelCreateWithoutCreatorInput!]
+  connect: [ChannelWhereUniqueInput!]
 }
 
-input CommentCreateManyWithoutPostInput {
-  create: [CommentCreateWithoutPostInput!]
-  connect: [CommentWhereUniqueInput!]
+input ChannelCreateOneWithoutTopicsInput {
+  create: ChannelCreateWithoutTopicsInput
+  connect: ChannelWhereUniqueInput
 }
 
-input CommentCreateWithoutAuthorInput {
+input ChannelCreateWithoutCreatorInput {
   id: ID
-  text: String!
-  post: PostCreateOneWithoutCommentsInput!
+  title: String!
+  cover: String!
+  stars: Int
+  topics: TopicCreateManyWithoutChannelInput
 }
 
-input CommentCreateWithoutPostInput {
+input ChannelCreateWithoutTopicsInput {
   id: ID
-  text: String!
-  author: UserCreateOneWithoutCommentsInput!
+  title: String!
+  cover: String!
+  stars: Int
+  creator: UserCreateOneWithoutChannelsInput!
 }
 
-type CommentEdge {
-  node: Comment!
+type ChannelEdge {
+  node: Channel!
   cursor: String!
 }
 
-enum CommentOrderByInput {
+enum ChannelOrderByInput {
   id_ASC
   id_DESC
-  text_ASC
-  text_DESC
+  createdAt_ASC
+  createdAt_DESC
+  title_ASC
+  title_DESC
+  cover_ASC
+  cover_DESC
+  stars_ASC
+  stars_DESC
 }
 
-type CommentPreviousValues {
+type ChannelPreviousValues {
   id: ID!
-  text: String!
+  createdAt: DateTime!
+  title: String!
+  cover: String!
+  stars: Int
 }
 
-input CommentScalarWhereInput {
+input ChannelScalarWhereInput {
   id: ID
   id_not: ID
   id_in: [ID!]
@@ -92,119 +114,287 @@ input CommentScalarWhereInput {
   id_not_starts_with: ID
   id_ends_with: ID
   id_not_ends_with: ID
-  text: String
-  text_not: String
-  text_in: [String!]
-  text_not_in: [String!]
-  text_lt: String
-  text_lte: String
-  text_gt: String
-  text_gte: String
-  text_contains: String
-  text_not_contains: String
-  text_starts_with: String
-  text_not_starts_with: String
-  text_ends_with: String
-  text_not_ends_with: String
-  AND: [CommentScalarWhereInput!]
-  OR: [CommentScalarWhereInput!]
-  NOT: [CommentScalarWhereInput!]
+  createdAt: DateTime
+  createdAt_not: DateTime
+  createdAt_in: [DateTime!]
+  createdAt_not_in: [DateTime!]
+  createdAt_lt: DateTime
+  createdAt_lte: DateTime
+  createdAt_gt: DateTime
+  createdAt_gte: DateTime
+  title: String
+  title_not: String
+  title_in: [String!]
+  title_not_in: [String!]
+  title_lt: String
+  title_lte: String
+  title_gt: String
+  title_gte: String
+  title_contains: String
+  title_not_contains: String
+  title_starts_with: String
+  title_not_starts_with: String
+  title_ends_with: String
+  title_not_ends_with: String
+  cover: String
+  cover_not: String
+  cover_in: [String!]
+  cover_not_in: [String!]
+  cover_lt: String
+  cover_lte: String
+  cover_gt: String
+  cover_gte: String
+  cover_contains: String
+  cover_not_contains: String
+  cover_starts_with: String
+  cover_not_starts_with: String
+  cover_ends_with: String
+  cover_not_ends_with: String
+  stars: Int
+  stars_not: Int
+  stars_in: [Int!]
+  stars_not_in: [Int!]
+  stars_lt: Int
+  stars_lte: Int
+  stars_gt: Int
+  stars_gte: Int
+  AND: [ChannelScalarWhereInput!]
+  OR: [ChannelScalarWhereInput!]
+  NOT: [ChannelScalarWhereInput!]
 }
 
-type CommentSubscriptionPayload {
+type ChannelSubscriptionPayload {
   mutation: MutationType!
-  node: Comment
+  node: Channel
   updatedFields: [String!]
-  previousValues: CommentPreviousValues
+  previousValues: ChannelPreviousValues
 }
 
-input CommentSubscriptionWhereInput {
+input ChannelSubscriptionWhereInput {
   mutation_in: [MutationType!]
   updatedFields_contains: String
   updatedFields_contains_every: [String!]
   updatedFields_contains_some: [String!]
-  node: CommentWhereInput
-  AND: [CommentSubscriptionWhereInput!]
-  OR: [CommentSubscriptionWhereInput!]
-  NOT: [CommentSubscriptionWhereInput!]
+  node: ChannelWhereInput
+  AND: [ChannelSubscriptionWhereInput!]
+  OR: [ChannelSubscriptionWhereInput!]
+  NOT: [ChannelSubscriptionWhereInput!]
 }
 
-input CommentUpdateInput {
-  text: String
-  author: UserUpdateOneRequiredWithoutCommentsInput
-  post: PostUpdateOneRequiredWithoutCommentsInput
+input ChannelUpdateInput {
+  title: String
+  cover: String
+  stars: Int
+  creator: UserUpdateOneRequiredWithoutChannelsInput
+  topics: TopicUpdateManyWithoutChannelInput
 }
 
-input CommentUpdateManyDataInput {
-  text: String
+input ChannelUpdateManyDataInput {
+  title: String
+  cover: String
+  stars: Int
 }
 
-input CommentUpdateManyMutationInput {
-  text: String
+input ChannelUpdateManyMutationInput {
+  title: String
+  cover: String
+  stars: Int
 }
 
-input CommentUpdateManyWithoutAuthorInput {
-  create: [CommentCreateWithoutAuthorInput!]
-  delete: [CommentWhereUniqueInput!]
-  connect: [CommentWhereUniqueInput!]
-  set: [CommentWhereUniqueInput!]
-  disconnect: [CommentWhereUniqueInput!]
-  update: [CommentUpdateWithWhereUniqueWithoutAuthorInput!]
-  upsert: [CommentUpsertWithWhereUniqueWithoutAuthorInput!]
-  deleteMany: [CommentScalarWhereInput!]
-  updateMany: [CommentUpdateManyWithWhereNestedInput!]
+input ChannelUpdateManyWithoutCreatorInput {
+  create: [ChannelCreateWithoutCreatorInput!]
+  delete: [ChannelWhereUniqueInput!]
+  connect: [ChannelWhereUniqueInput!]
+  set: [ChannelWhereUniqueInput!]
+  disconnect: [ChannelWhereUniqueInput!]
+  update: [ChannelUpdateWithWhereUniqueWithoutCreatorInput!]
+  upsert: [ChannelUpsertWithWhereUniqueWithoutCreatorInput!]
+  deleteMany: [ChannelScalarWhereInput!]
+  updateMany: [ChannelUpdateManyWithWhereNestedInput!]
 }
 
-input CommentUpdateManyWithoutPostInput {
-  create: [CommentCreateWithoutPostInput!]
-  delete: [CommentWhereUniqueInput!]
-  connect: [CommentWhereUniqueInput!]
-  set: [CommentWhereUniqueInput!]
-  disconnect: [CommentWhereUniqueInput!]
-  update: [CommentUpdateWithWhereUniqueWithoutPostInput!]
-  upsert: [CommentUpsertWithWhereUniqueWithoutPostInput!]
-  deleteMany: [CommentScalarWhereInput!]
-  updateMany: [CommentUpdateManyWithWhereNestedInput!]
+input ChannelUpdateManyWithWhereNestedInput {
+  where: ChannelScalarWhereInput!
+  data: ChannelUpdateManyDataInput!
 }
 
-input CommentUpdateManyWithWhereNestedInput {
-  where: CommentScalarWhereInput!
-  data: CommentUpdateManyDataInput!
+input ChannelUpdateOneRequiredWithoutTopicsInput {
+  create: ChannelCreateWithoutTopicsInput
+  update: ChannelUpdateWithoutTopicsDataInput
+  upsert: ChannelUpsertWithoutTopicsInput
+  connect: ChannelWhereUniqueInput
 }
 
-input CommentUpdateWithoutAuthorDataInput {
-  text: String
-  post: PostUpdateOneRequiredWithoutCommentsInput
+input ChannelUpdateWithoutCreatorDataInput {
+  title: String
+  cover: String
+  stars: Int
+  topics: TopicUpdateManyWithoutChannelInput
 }
 
-input CommentUpdateWithoutPostDataInput {
-  text: String
-  author: UserUpdateOneRequiredWithoutCommentsInput
+input ChannelUpdateWithoutTopicsDataInput {
+  title: String
+  cover: String
+  stars: Int
+  creator: UserUpdateOneRequiredWithoutChannelsInput
 }
 
-input CommentUpdateWithWhereUniqueWithoutAuthorInput {
-  where: CommentWhereUniqueInput!
-  data: CommentUpdateWithoutAuthorDataInput!
+input ChannelUpdateWithWhereUniqueWithoutCreatorInput {
+  where: ChannelWhereUniqueInput!
+  data: ChannelUpdateWithoutCreatorDataInput!
 }
 
-input CommentUpdateWithWhereUniqueWithoutPostInput {
-  where: CommentWhereUniqueInput!
-  data: CommentUpdateWithoutPostDataInput!
+input ChannelUpsertWithoutTopicsInput {
+  update: ChannelUpdateWithoutTopicsDataInput!
+  create: ChannelCreateWithoutTopicsInput!
 }
 
-input CommentUpsertWithWhereUniqueWithoutAuthorInput {
-  where: CommentWhereUniqueInput!
-  update: CommentUpdateWithoutAuthorDataInput!
-  create: CommentCreateWithoutAuthorInput!
+input ChannelUpsertWithWhereUniqueWithoutCreatorInput {
+  where: ChannelWhereUniqueInput!
+  update: ChannelUpdateWithoutCreatorDataInput!
+  create: ChannelCreateWithoutCreatorInput!
 }
 
-input CommentUpsertWithWhereUniqueWithoutPostInput {
-  where: CommentWhereUniqueInput!
-  update: CommentUpdateWithoutPostDataInput!
-  create: CommentCreateWithoutPostInput!
+input ChannelWhereInput {
+  id: ID
+  id_not: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  id_lt: ID
+  id_lte: ID
+  id_gt: ID
+  id_gte: ID
+  id_contains: ID
+  id_not_contains: ID
+  id_starts_with: ID
+  id_not_starts_with: ID
+  id_ends_with: ID
+  id_not_ends_with: ID
+  createdAt: DateTime
+  createdAt_not: DateTime
+  createdAt_in: [DateTime!]
+  createdAt_not_in: [DateTime!]
+  createdAt_lt: DateTime
+  createdAt_lte: DateTime
+  createdAt_gt: DateTime
+  createdAt_gte: DateTime
+  title: String
+  title_not: String
+  title_in: [String!]
+  title_not_in: [String!]
+  title_lt: String
+  title_lte: String
+  title_gt: String
+  title_gte: String
+  title_contains: String
+  title_not_contains: String
+  title_starts_with: String
+  title_not_starts_with: String
+  title_ends_with: String
+  title_not_ends_with: String
+  cover: String
+  cover_not: String
+  cover_in: [String!]
+  cover_not_in: [String!]
+  cover_lt: String
+  cover_lte: String
+  cover_gt: String
+  cover_gte: String
+  cover_contains: String
+  cover_not_contains: String
+  cover_starts_with: String
+  cover_not_starts_with: String
+  cover_ends_with: String
+  cover_not_ends_with: String
+  stars: Int
+  stars_not: Int
+  stars_in: [Int!]
+  stars_not_in: [Int!]
+  stars_lt: Int
+  stars_lte: Int
+  stars_gt: Int
+  stars_gte: Int
+  creator: UserWhereInput
+  topics_every: TopicWhereInput
+  topics_some: TopicWhereInput
+  topics_none: TopicWhereInput
+  AND: [ChannelWhereInput!]
+  OR: [ChannelWhereInput!]
+  NOT: [ChannelWhereInput!]
 }
 
-input CommentWhereInput {
+input ChannelWhereUniqueInput {
+  id: ID
+}
+
+scalar DateTime
+
+scalar Long
+
+type Message {
+  id: ID!
+  text: String!
+  createdAt: DateTime!
+  creator: User!
+  topic: Topic!
+}
+
+type MessageConnection {
+  pageInfo: PageInfo!
+  edges: [MessageEdge]!
+  aggregate: AggregateMessage!
+}
+
+input MessageCreateInput {
+  id: ID
+  text: String!
+  creator: UserCreateOneWithoutMessagesInput!
+  topic: TopicCreateOneWithoutMessagesInput!
+}
+
+input MessageCreateManyWithoutCreatorInput {
+  create: [MessageCreateWithoutCreatorInput!]
+  connect: [MessageWhereUniqueInput!]
+}
+
+input MessageCreateManyWithoutTopicInput {
+  create: [MessageCreateWithoutTopicInput!]
+  connect: [MessageWhereUniqueInput!]
+}
+
+input MessageCreateWithoutCreatorInput {
+  id: ID
+  text: String!
+  topic: TopicCreateOneWithoutMessagesInput!
+}
+
+input MessageCreateWithoutTopicInput {
+  id: ID
+  text: String!
+  creator: UserCreateOneWithoutMessagesInput!
+}
+
+type MessageEdge {
+  node: Message!
+  cursor: String!
+}
+
+enum MessageOrderByInput {
+  id_ASC
+  id_DESC
+  text_ASC
+  text_DESC
+  createdAt_ASC
+  createdAt_DESC
+}
+
+type MessagePreviousValues {
+  id: ID!
+  text: String!
+  createdAt: DateTime!
+}
+
+input MessageScalarWhereInput {
   id: ID
   id_not: ID
   id_in: [ID!]
@@ -233,38 +423,185 @@ input CommentWhereInput {
   text_not_starts_with: String
   text_ends_with: String
   text_not_ends_with: String
-  author: UserWhereInput
-  post: PostWhereInput
-  AND: [CommentWhereInput!]
-  OR: [CommentWhereInput!]
-  NOT: [CommentWhereInput!]
+  createdAt: DateTime
+  createdAt_not: DateTime
+  createdAt_in: [DateTime!]
+  createdAt_not_in: [DateTime!]
+  createdAt_lt: DateTime
+  createdAt_lte: DateTime
+  createdAt_gt: DateTime
+  createdAt_gte: DateTime
+  AND: [MessageScalarWhereInput!]
+  OR: [MessageScalarWhereInput!]
+  NOT: [MessageScalarWhereInput!]
 }
 
-input CommentWhereUniqueInput {
+type MessageSubscriptionPayload {
+  mutation: MutationType!
+  node: Message
+  updatedFields: [String!]
+  previousValues: MessagePreviousValues
+}
+
+input MessageSubscriptionWhereInput {
+  mutation_in: [MutationType!]
+  updatedFields_contains: String
+  updatedFields_contains_every: [String!]
+  updatedFields_contains_some: [String!]
+  node: MessageWhereInput
+  AND: [MessageSubscriptionWhereInput!]
+  OR: [MessageSubscriptionWhereInput!]
+  NOT: [MessageSubscriptionWhereInput!]
+}
+
+input MessageUpdateInput {
+  text: String
+  creator: UserUpdateOneRequiredWithoutMessagesInput
+  topic: TopicUpdateOneRequiredWithoutMessagesInput
+}
+
+input MessageUpdateManyDataInput {
+  text: String
+}
+
+input MessageUpdateManyMutationInput {
+  text: String
+}
+
+input MessageUpdateManyWithoutCreatorInput {
+  create: [MessageCreateWithoutCreatorInput!]
+  delete: [MessageWhereUniqueInput!]
+  connect: [MessageWhereUniqueInput!]
+  set: [MessageWhereUniqueInput!]
+  disconnect: [MessageWhereUniqueInput!]
+  update: [MessageUpdateWithWhereUniqueWithoutCreatorInput!]
+  upsert: [MessageUpsertWithWhereUniqueWithoutCreatorInput!]
+  deleteMany: [MessageScalarWhereInput!]
+  updateMany: [MessageUpdateManyWithWhereNestedInput!]
+}
+
+input MessageUpdateManyWithoutTopicInput {
+  create: [MessageCreateWithoutTopicInput!]
+  delete: [MessageWhereUniqueInput!]
+  connect: [MessageWhereUniqueInput!]
+  set: [MessageWhereUniqueInput!]
+  disconnect: [MessageWhereUniqueInput!]
+  update: [MessageUpdateWithWhereUniqueWithoutTopicInput!]
+  upsert: [MessageUpsertWithWhereUniqueWithoutTopicInput!]
+  deleteMany: [MessageScalarWhereInput!]
+  updateMany: [MessageUpdateManyWithWhereNestedInput!]
+}
+
+input MessageUpdateManyWithWhereNestedInput {
+  where: MessageScalarWhereInput!
+  data: MessageUpdateManyDataInput!
+}
+
+input MessageUpdateWithoutCreatorDataInput {
+  text: String
+  topic: TopicUpdateOneRequiredWithoutMessagesInput
+}
+
+input MessageUpdateWithoutTopicDataInput {
+  text: String
+  creator: UserUpdateOneRequiredWithoutMessagesInput
+}
+
+input MessageUpdateWithWhereUniqueWithoutCreatorInput {
+  where: MessageWhereUniqueInput!
+  data: MessageUpdateWithoutCreatorDataInput!
+}
+
+input MessageUpdateWithWhereUniqueWithoutTopicInput {
+  where: MessageWhereUniqueInput!
+  data: MessageUpdateWithoutTopicDataInput!
+}
+
+input MessageUpsertWithWhereUniqueWithoutCreatorInput {
+  where: MessageWhereUniqueInput!
+  update: MessageUpdateWithoutCreatorDataInput!
+  create: MessageCreateWithoutCreatorInput!
+}
+
+input MessageUpsertWithWhereUniqueWithoutTopicInput {
+  where: MessageWhereUniqueInput!
+  update: MessageUpdateWithoutTopicDataInput!
+  create: MessageCreateWithoutTopicInput!
+}
+
+input MessageWhereInput {
+  id: ID
+  id_not: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  id_lt: ID
+  id_lte: ID
+  id_gt: ID
+  id_gte: ID
+  id_contains: ID
+  id_not_contains: ID
+  id_starts_with: ID
+  id_not_starts_with: ID
+  id_ends_with: ID
+  id_not_ends_with: ID
+  text: String
+  text_not: String
+  text_in: [String!]
+  text_not_in: [String!]
+  text_lt: String
+  text_lte: String
+  text_gt: String
+  text_gte: String
+  text_contains: String
+  text_not_contains: String
+  text_starts_with: String
+  text_not_starts_with: String
+  text_ends_with: String
+  text_not_ends_with: String
+  createdAt: DateTime
+  createdAt_not: DateTime
+  createdAt_in: [DateTime!]
+  createdAt_not_in: [DateTime!]
+  createdAt_lt: DateTime
+  createdAt_lte: DateTime
+  createdAt_gt: DateTime
+  createdAt_gte: DateTime
+  creator: UserWhereInput
+  topic: TopicWhereInput
+  AND: [MessageWhereInput!]
+  OR: [MessageWhereInput!]
+  NOT: [MessageWhereInput!]
+}
+
+input MessageWhereUniqueInput {
   id: ID
 }
 
-scalar Long
-
 type Mutation {
-  createComment(data: CommentCreateInput!): Comment!
-  updateComment(data: CommentUpdateInput!, where: CommentWhereUniqueInput!): Comment
-  updateManyComments(data: CommentUpdateManyMutationInput!, where: CommentWhereInput): BatchPayload!
-  upsertComment(where: CommentWhereUniqueInput!, create: CommentCreateInput!, update: CommentUpdateInput!): Comment!
-  deleteComment(where: CommentWhereUniqueInput!): Comment
-  deleteManyComments(where: CommentWhereInput): BatchPayload!
-  createPost(data: PostCreateInput!): Post!
-  updatePost(data: PostUpdateInput!, where: PostWhereUniqueInput!): Post
-  updateManyPosts(data: PostUpdateManyMutationInput!, where: PostWhereInput): BatchPayload!
-  upsertPost(where: PostWhereUniqueInput!, create: PostCreateInput!, update: PostUpdateInput!): Post!
-  deletePost(where: PostWhereUniqueInput!): Post
-  deleteManyPosts(where: PostWhereInput): BatchPayload!
+  createChannel(data: ChannelCreateInput!): Channel!
+  updateChannel(data: ChannelUpdateInput!, where: ChannelWhereUniqueInput!): Channel
+  updateManyChannels(data: ChannelUpdateManyMutationInput!, where: ChannelWhereInput): BatchPayload!
+  upsertChannel(where: ChannelWhereUniqueInput!, create: ChannelCreateInput!, update: ChannelUpdateInput!): Channel!
+  deleteChannel(where: ChannelWhereUniqueInput!): Channel
+  deleteManyChannels(where: ChannelWhereInput): BatchPayload!
+  createMessage(data: MessageCreateInput!): Message!
+  updateMessage(data: MessageUpdateInput!, where: MessageWhereUniqueInput!): Message
+  updateManyMessages(data: MessageUpdateManyMutationInput!, where: MessageWhereInput): BatchPayload!
+  upsertMessage(where: MessageWhereUniqueInput!, create: MessageCreateInput!, update: MessageUpdateInput!): Message!
+  deleteMessage(where: MessageWhereUniqueInput!): Message
+  deleteManyMessages(where: MessageWhereInput): BatchPayload!
   createRefreshToken(data: RefreshTokenCreateInput!): RefreshToken!
   updateRefreshToken(data: RefreshTokenUpdateInput!, where: RefreshTokenWhereUniqueInput!): RefreshToken
   updateManyRefreshTokens(data: RefreshTokenUpdateManyMutationInput!, where: RefreshTokenWhereInput): BatchPayload!
   upsertRefreshToken(where: RefreshTokenWhereUniqueInput!, create: RefreshTokenCreateInput!, update: RefreshTokenUpdateInput!): RefreshToken!
   deleteRefreshToken(where: RefreshTokenWhereUniqueInput!): RefreshToken
   deleteManyRefreshTokens(where: RefreshTokenWhereInput): BatchPayload!
+  createTopic(data: TopicCreateInput!): Topic!
+  updateTopic(data: TopicUpdateInput!, where: TopicWhereUniqueInput!): Topic
+  updateManyTopics(data: TopicUpdateManyMutationInput!, where: TopicWhereInput): BatchPayload!
+  upsertTopic(where: TopicWhereUniqueInput!, create: TopicCreateInput!, update: TopicUpdateInput!): Topic!
+  deleteTopic(where: TopicWhereUniqueInput!): Topic
+  deleteManyTopics(where: TopicWhereInput): BatchPayload!
   createUser(data: UserCreateInput!): User!
   updateUser(data: UserUpdateInput!, where: UserWhereUniqueInput!): User
   updateManyUsers(data: UserUpdateManyMutationInput!, where: UserWhereInput): BatchPayload!
@@ -290,289 +627,19 @@ type PageInfo {
   endCursor: String
 }
 
-type Post {
-  id: ID!
-  title: String!
-  body: String!
-  published: Boolean!
-  author: User!
-  comments(where: CommentWhereInput, orderBy: CommentOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Comment!]
-}
-
-type PostConnection {
-  pageInfo: PageInfo!
-  edges: [PostEdge]!
-  aggregate: AggregatePost!
-}
-
-input PostCreateInput {
-  id: ID
-  title: String!
-  body: String!
-  published: Boolean!
-  author: UserCreateOneWithoutPostsInput!
-  comments: CommentCreateManyWithoutPostInput
-}
-
-input PostCreateManyWithoutAuthorInput {
-  create: [PostCreateWithoutAuthorInput!]
-  connect: [PostWhereUniqueInput!]
-}
-
-input PostCreateOneWithoutCommentsInput {
-  create: PostCreateWithoutCommentsInput
-  connect: PostWhereUniqueInput
-}
-
-input PostCreateWithoutAuthorInput {
-  id: ID
-  title: String!
-  body: String!
-  published: Boolean!
-  comments: CommentCreateManyWithoutPostInput
-}
-
-input PostCreateWithoutCommentsInput {
-  id: ID
-  title: String!
-  body: String!
-  published: Boolean!
-  author: UserCreateOneWithoutPostsInput!
-}
-
-type PostEdge {
-  node: Post!
-  cursor: String!
-}
-
-enum PostOrderByInput {
-  id_ASC
-  id_DESC
-  title_ASC
-  title_DESC
-  body_ASC
-  body_DESC
-  published_ASC
-  published_DESC
-}
-
-type PostPreviousValues {
-  id: ID!
-  title: String!
-  body: String!
-  published: Boolean!
-}
-
-input PostScalarWhereInput {
-  id: ID
-  id_not: ID
-  id_in: [ID!]
-  id_not_in: [ID!]
-  id_lt: ID
-  id_lte: ID
-  id_gt: ID
-  id_gte: ID
-  id_contains: ID
-  id_not_contains: ID
-  id_starts_with: ID
-  id_not_starts_with: ID
-  id_ends_with: ID
-  id_not_ends_with: ID
-  title: String
-  title_not: String
-  title_in: [String!]
-  title_not_in: [String!]
-  title_lt: String
-  title_lte: String
-  title_gt: String
-  title_gte: String
-  title_contains: String
-  title_not_contains: String
-  title_starts_with: String
-  title_not_starts_with: String
-  title_ends_with: String
-  title_not_ends_with: String
-  body: String
-  body_not: String
-  body_in: [String!]
-  body_not_in: [String!]
-  body_lt: String
-  body_lte: String
-  body_gt: String
-  body_gte: String
-  body_contains: String
-  body_not_contains: String
-  body_starts_with: String
-  body_not_starts_with: String
-  body_ends_with: String
-  body_not_ends_with: String
-  published: Boolean
-  published_not: Boolean
-  AND: [PostScalarWhereInput!]
-  OR: [PostScalarWhereInput!]
-  NOT: [PostScalarWhereInput!]
-}
-
-type PostSubscriptionPayload {
-  mutation: MutationType!
-  node: Post
-  updatedFields: [String!]
-  previousValues: PostPreviousValues
-}
-
-input PostSubscriptionWhereInput {
-  mutation_in: [MutationType!]
-  updatedFields_contains: String
-  updatedFields_contains_every: [String!]
-  updatedFields_contains_some: [String!]
-  node: PostWhereInput
-  AND: [PostSubscriptionWhereInput!]
-  OR: [PostSubscriptionWhereInput!]
-  NOT: [PostSubscriptionWhereInput!]
-}
-
-input PostUpdateInput {
-  title: String
-  body: String
-  published: Boolean
-  author: UserUpdateOneRequiredWithoutPostsInput
-  comments: CommentUpdateManyWithoutPostInput
-}
-
-input PostUpdateManyDataInput {
-  title: String
-  body: String
-  published: Boolean
-}
-
-input PostUpdateManyMutationInput {
-  title: String
-  body: String
-  published: Boolean
-}
-
-input PostUpdateManyWithoutAuthorInput {
-  create: [PostCreateWithoutAuthorInput!]
-  delete: [PostWhereUniqueInput!]
-  connect: [PostWhereUniqueInput!]
-  set: [PostWhereUniqueInput!]
-  disconnect: [PostWhereUniqueInput!]
-  update: [PostUpdateWithWhereUniqueWithoutAuthorInput!]
-  upsert: [PostUpsertWithWhereUniqueWithoutAuthorInput!]
-  deleteMany: [PostScalarWhereInput!]
-  updateMany: [PostUpdateManyWithWhereNestedInput!]
-}
-
-input PostUpdateManyWithWhereNestedInput {
-  where: PostScalarWhereInput!
-  data: PostUpdateManyDataInput!
-}
-
-input PostUpdateOneRequiredWithoutCommentsInput {
-  create: PostCreateWithoutCommentsInput
-  update: PostUpdateWithoutCommentsDataInput
-  upsert: PostUpsertWithoutCommentsInput
-  connect: PostWhereUniqueInput
-}
-
-input PostUpdateWithoutAuthorDataInput {
-  title: String
-  body: String
-  published: Boolean
-  comments: CommentUpdateManyWithoutPostInput
-}
-
-input PostUpdateWithoutCommentsDataInput {
-  title: String
-  body: String
-  published: Boolean
-  author: UserUpdateOneRequiredWithoutPostsInput
-}
-
-input PostUpdateWithWhereUniqueWithoutAuthorInput {
-  where: PostWhereUniqueInput!
-  data: PostUpdateWithoutAuthorDataInput!
-}
-
-input PostUpsertWithoutCommentsInput {
-  update: PostUpdateWithoutCommentsDataInput!
-  create: PostCreateWithoutCommentsInput!
-}
-
-input PostUpsertWithWhereUniqueWithoutAuthorInput {
-  where: PostWhereUniqueInput!
-  update: PostUpdateWithoutAuthorDataInput!
-  create: PostCreateWithoutAuthorInput!
-}
-
-input PostWhereInput {
-  id: ID
-  id_not: ID
-  id_in: [ID!]
-  id_not_in: [ID!]
-  id_lt: ID
-  id_lte: ID
-  id_gt: ID
-  id_gte: ID
-  id_contains: ID
-  id_not_contains: ID
-  id_starts_with: ID
-  id_not_starts_with: ID
-  id_ends_with: ID
-  id_not_ends_with: ID
-  title: String
-  title_not: String
-  title_in: [String!]
-  title_not_in: [String!]
-  title_lt: String
-  title_lte: String
-  title_gt: String
-  title_gte: String
-  title_contains: String
-  title_not_contains: String
-  title_starts_with: String
-  title_not_starts_with: String
-  title_ends_with: String
-  title_not_ends_with: String
-  body: String
-  body_not: String
-  body_in: [String!]
-  body_not_in: [String!]
-  body_lt: String
-  body_lte: String
-  body_gt: String
-  body_gte: String
-  body_contains: String
-  body_not_contains: String
-  body_starts_with: String
-  body_not_starts_with: String
-  body_ends_with: String
-  body_not_ends_with: String
-  published: Boolean
-  published_not: Boolean
-  author: UserWhereInput
-  comments_every: CommentWhereInput
-  comments_some: CommentWhereInput
-  comments_none: CommentWhereInput
-  AND: [PostWhereInput!]
-  OR: [PostWhereInput!]
-  NOT: [PostWhereInput!]
-}
-
-input PostWhereUniqueInput {
-  id: ID
-}
-
 type Query {
-  comment(where: CommentWhereUniqueInput!): Comment
-  comments(where: CommentWhereInput, orderBy: CommentOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Comment]!
-  commentsConnection(where: CommentWhereInput, orderBy: CommentOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): CommentConnection!
-  post(where: PostWhereUniqueInput!): Post
-  posts(where: PostWhereInput, orderBy: PostOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Post]!
-  postsConnection(where: PostWhereInput, orderBy: PostOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): PostConnection!
+  channel(where: ChannelWhereUniqueInput!): Channel
+  channels(where: ChannelWhereInput, orderBy: ChannelOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Channel]!
+  channelsConnection(where: ChannelWhereInput, orderBy: ChannelOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): ChannelConnection!
+  message(where: MessageWhereUniqueInput!): Message
+  messages(where: MessageWhereInput, orderBy: MessageOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Message]!
+  messagesConnection(where: MessageWhereInput, orderBy: MessageOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): MessageConnection!
   refreshToken(where: RefreshTokenWhereUniqueInput!): RefreshToken
   refreshTokens(where: RefreshTokenWhereInput, orderBy: RefreshTokenOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [RefreshToken]!
   refreshTokensConnection(where: RefreshTokenWhereInput, orderBy: RefreshTokenOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): RefreshTokenConnection!
+  topic(where: TopicWhereUniqueInput!): Topic
+  topics(where: TopicWhereInput, orderBy: TopicOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Topic]!
+  topicsConnection(where: TopicWhereInput, orderBy: TopicOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): TopicConnection!
   user(where: UserWhereUniqueInput!): User
   users(where: UserWhereInput, orderBy: UserOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [User]!
   usersConnection(where: UserWhereInput, orderBy: UserOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): UserConnection!
@@ -761,20 +828,384 @@ input RefreshTokenWhereUniqueInput {
 }
 
 type Subscription {
-  comment(where: CommentSubscriptionWhereInput): CommentSubscriptionPayload
-  post(where: PostSubscriptionWhereInput): PostSubscriptionPayload
+  channel(where: ChannelSubscriptionWhereInput): ChannelSubscriptionPayload
+  message(where: MessageSubscriptionWhereInput): MessageSubscriptionPayload
   refreshToken(where: RefreshTokenSubscriptionWhereInput): RefreshTokenSubscriptionPayload
+  topic(where: TopicSubscriptionWhereInput): TopicSubscriptionPayload
   user(where: UserSubscriptionWhereInput): UserSubscriptionPayload
+}
+
+type Topic {
+  id: ID!
+  createdAt: DateTime!
+  title: String!
+  stars: Int
+  avatar: String!
+  creator: User!
+  channel: Channel!
+  messages(where: MessageWhereInput, orderBy: MessageOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Message!]
+}
+
+type TopicConnection {
+  pageInfo: PageInfo!
+  edges: [TopicEdge]!
+  aggregate: AggregateTopic!
+}
+
+input TopicCreateInput {
+  id: ID
+  title: String!
+  stars: Int
+  avatar: String!
+  creator: UserCreateOneWithoutTopicsInput!
+  channel: ChannelCreateOneWithoutTopicsInput!
+  messages: MessageCreateManyWithoutTopicInput
+}
+
+input TopicCreateManyWithoutChannelInput {
+  create: [TopicCreateWithoutChannelInput!]
+  connect: [TopicWhereUniqueInput!]
+}
+
+input TopicCreateManyWithoutCreatorInput {
+  create: [TopicCreateWithoutCreatorInput!]
+  connect: [TopicWhereUniqueInput!]
+}
+
+input TopicCreateOneWithoutMessagesInput {
+  create: TopicCreateWithoutMessagesInput
+  connect: TopicWhereUniqueInput
+}
+
+input TopicCreateWithoutChannelInput {
+  id: ID
+  title: String!
+  stars: Int
+  avatar: String!
+  creator: UserCreateOneWithoutTopicsInput!
+  messages: MessageCreateManyWithoutTopicInput
+}
+
+input TopicCreateWithoutCreatorInput {
+  id: ID
+  title: String!
+  stars: Int
+  avatar: String!
+  channel: ChannelCreateOneWithoutTopicsInput!
+  messages: MessageCreateManyWithoutTopicInput
+}
+
+input TopicCreateWithoutMessagesInput {
+  id: ID
+  title: String!
+  stars: Int
+  avatar: String!
+  creator: UserCreateOneWithoutTopicsInput!
+  channel: ChannelCreateOneWithoutTopicsInput!
+}
+
+type TopicEdge {
+  node: Topic!
+  cursor: String!
+}
+
+enum TopicOrderByInput {
+  id_ASC
+  id_DESC
+  createdAt_ASC
+  createdAt_DESC
+  title_ASC
+  title_DESC
+  stars_ASC
+  stars_DESC
+  avatar_ASC
+  avatar_DESC
+}
+
+type TopicPreviousValues {
+  id: ID!
+  createdAt: DateTime!
+  title: String!
+  stars: Int
+  avatar: String!
+}
+
+input TopicScalarWhereInput {
+  id: ID
+  id_not: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  id_lt: ID
+  id_lte: ID
+  id_gt: ID
+  id_gte: ID
+  id_contains: ID
+  id_not_contains: ID
+  id_starts_with: ID
+  id_not_starts_with: ID
+  id_ends_with: ID
+  id_not_ends_with: ID
+  createdAt: DateTime
+  createdAt_not: DateTime
+  createdAt_in: [DateTime!]
+  createdAt_not_in: [DateTime!]
+  createdAt_lt: DateTime
+  createdAt_lte: DateTime
+  createdAt_gt: DateTime
+  createdAt_gte: DateTime
+  title: String
+  title_not: String
+  title_in: [String!]
+  title_not_in: [String!]
+  title_lt: String
+  title_lte: String
+  title_gt: String
+  title_gte: String
+  title_contains: String
+  title_not_contains: String
+  title_starts_with: String
+  title_not_starts_with: String
+  title_ends_with: String
+  title_not_ends_with: String
+  stars: Int
+  stars_not: Int
+  stars_in: [Int!]
+  stars_not_in: [Int!]
+  stars_lt: Int
+  stars_lte: Int
+  stars_gt: Int
+  stars_gte: Int
+  avatar: String
+  avatar_not: String
+  avatar_in: [String!]
+  avatar_not_in: [String!]
+  avatar_lt: String
+  avatar_lte: String
+  avatar_gt: String
+  avatar_gte: String
+  avatar_contains: String
+  avatar_not_contains: String
+  avatar_starts_with: String
+  avatar_not_starts_with: String
+  avatar_ends_with: String
+  avatar_not_ends_with: String
+  AND: [TopicScalarWhereInput!]
+  OR: [TopicScalarWhereInput!]
+  NOT: [TopicScalarWhereInput!]
+}
+
+type TopicSubscriptionPayload {
+  mutation: MutationType!
+  node: Topic
+  updatedFields: [String!]
+  previousValues: TopicPreviousValues
+}
+
+input TopicSubscriptionWhereInput {
+  mutation_in: [MutationType!]
+  updatedFields_contains: String
+  updatedFields_contains_every: [String!]
+  updatedFields_contains_some: [String!]
+  node: TopicWhereInput
+  AND: [TopicSubscriptionWhereInput!]
+  OR: [TopicSubscriptionWhereInput!]
+  NOT: [TopicSubscriptionWhereInput!]
+}
+
+input TopicUpdateInput {
+  title: String
+  stars: Int
+  avatar: String
+  creator: UserUpdateOneRequiredWithoutTopicsInput
+  channel: ChannelUpdateOneRequiredWithoutTopicsInput
+  messages: MessageUpdateManyWithoutTopicInput
+}
+
+input TopicUpdateManyDataInput {
+  title: String
+  stars: Int
+  avatar: String
+}
+
+input TopicUpdateManyMutationInput {
+  title: String
+  stars: Int
+  avatar: String
+}
+
+input TopicUpdateManyWithoutChannelInput {
+  create: [TopicCreateWithoutChannelInput!]
+  delete: [TopicWhereUniqueInput!]
+  connect: [TopicWhereUniqueInput!]
+  set: [TopicWhereUniqueInput!]
+  disconnect: [TopicWhereUniqueInput!]
+  update: [TopicUpdateWithWhereUniqueWithoutChannelInput!]
+  upsert: [TopicUpsertWithWhereUniqueWithoutChannelInput!]
+  deleteMany: [TopicScalarWhereInput!]
+  updateMany: [TopicUpdateManyWithWhereNestedInput!]
+}
+
+input TopicUpdateManyWithoutCreatorInput {
+  create: [TopicCreateWithoutCreatorInput!]
+  delete: [TopicWhereUniqueInput!]
+  connect: [TopicWhereUniqueInput!]
+  set: [TopicWhereUniqueInput!]
+  disconnect: [TopicWhereUniqueInput!]
+  update: [TopicUpdateWithWhereUniqueWithoutCreatorInput!]
+  upsert: [TopicUpsertWithWhereUniqueWithoutCreatorInput!]
+  deleteMany: [TopicScalarWhereInput!]
+  updateMany: [TopicUpdateManyWithWhereNestedInput!]
+}
+
+input TopicUpdateManyWithWhereNestedInput {
+  where: TopicScalarWhereInput!
+  data: TopicUpdateManyDataInput!
+}
+
+input TopicUpdateOneRequiredWithoutMessagesInput {
+  create: TopicCreateWithoutMessagesInput
+  update: TopicUpdateWithoutMessagesDataInput
+  upsert: TopicUpsertWithoutMessagesInput
+  connect: TopicWhereUniqueInput
+}
+
+input TopicUpdateWithoutChannelDataInput {
+  title: String
+  stars: Int
+  avatar: String
+  creator: UserUpdateOneRequiredWithoutTopicsInput
+  messages: MessageUpdateManyWithoutTopicInput
+}
+
+input TopicUpdateWithoutCreatorDataInput {
+  title: String
+  stars: Int
+  avatar: String
+  channel: ChannelUpdateOneRequiredWithoutTopicsInput
+  messages: MessageUpdateManyWithoutTopicInput
+}
+
+input TopicUpdateWithoutMessagesDataInput {
+  title: String
+  stars: Int
+  avatar: String
+  creator: UserUpdateOneRequiredWithoutTopicsInput
+  channel: ChannelUpdateOneRequiredWithoutTopicsInput
+}
+
+input TopicUpdateWithWhereUniqueWithoutChannelInput {
+  where: TopicWhereUniqueInput!
+  data: TopicUpdateWithoutChannelDataInput!
+}
+
+input TopicUpdateWithWhereUniqueWithoutCreatorInput {
+  where: TopicWhereUniqueInput!
+  data: TopicUpdateWithoutCreatorDataInput!
+}
+
+input TopicUpsertWithoutMessagesInput {
+  update: TopicUpdateWithoutMessagesDataInput!
+  create: TopicCreateWithoutMessagesInput!
+}
+
+input TopicUpsertWithWhereUniqueWithoutChannelInput {
+  where: TopicWhereUniqueInput!
+  update: TopicUpdateWithoutChannelDataInput!
+  create: TopicCreateWithoutChannelInput!
+}
+
+input TopicUpsertWithWhereUniqueWithoutCreatorInput {
+  where: TopicWhereUniqueInput!
+  update: TopicUpdateWithoutCreatorDataInput!
+  create: TopicCreateWithoutCreatorInput!
+}
+
+input TopicWhereInput {
+  id: ID
+  id_not: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  id_lt: ID
+  id_lte: ID
+  id_gt: ID
+  id_gte: ID
+  id_contains: ID
+  id_not_contains: ID
+  id_starts_with: ID
+  id_not_starts_with: ID
+  id_ends_with: ID
+  id_not_ends_with: ID
+  createdAt: DateTime
+  createdAt_not: DateTime
+  createdAt_in: [DateTime!]
+  createdAt_not_in: [DateTime!]
+  createdAt_lt: DateTime
+  createdAt_lte: DateTime
+  createdAt_gt: DateTime
+  createdAt_gte: DateTime
+  title: String
+  title_not: String
+  title_in: [String!]
+  title_not_in: [String!]
+  title_lt: String
+  title_lte: String
+  title_gt: String
+  title_gte: String
+  title_contains: String
+  title_not_contains: String
+  title_starts_with: String
+  title_not_starts_with: String
+  title_ends_with: String
+  title_not_ends_with: String
+  stars: Int
+  stars_not: Int
+  stars_in: [Int!]
+  stars_not_in: [Int!]
+  stars_lt: Int
+  stars_lte: Int
+  stars_gt: Int
+  stars_gte: Int
+  avatar: String
+  avatar_not: String
+  avatar_in: [String!]
+  avatar_not_in: [String!]
+  avatar_lt: String
+  avatar_lte: String
+  avatar_gt: String
+  avatar_gte: String
+  avatar_contains: String
+  avatar_not_contains: String
+  avatar_starts_with: String
+  avatar_not_starts_with: String
+  avatar_ends_with: String
+  avatar_not_ends_with: String
+  creator: UserWhereInput
+  channel: ChannelWhereInput
+  messages_every: MessageWhereInput
+  messages_some: MessageWhereInput
+  messages_none: MessageWhereInput
+  AND: [TopicWhereInput!]
+  OR: [TopicWhereInput!]
+  NOT: [TopicWhereInput!]
+}
+
+input TopicWhereUniqueInput {
+  id: ID
 }
 
 type User {
   id: ID!
-  refreshTokens(where: RefreshTokenWhereInput, orderBy: RefreshTokenOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [RefreshToken!]
+  createdAt: DateTime!
   name: String
   email: String
+  stars: Int
   phone: String!
-  posts(where: PostWhereInput, orderBy: PostOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Post!]
-  comments(where: CommentWhereInput, orderBy: CommentOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Comment!]
+  cover: String
+  avatar: String
+  channels(where: ChannelWhereInput, orderBy: ChannelOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Channel!]
+  topics(where: TopicWhereInput, orderBy: TopicOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Topic!]
+  messages(where: MessageWhereInput, orderBy: MessageOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Message!]
+  refreshTokens(where: RefreshTokenWhereInput, orderBy: RefreshTokenOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [RefreshToken!]
 }
 
 type UserConnection {
@@ -785,21 +1216,25 @@ type UserConnection {
 
 input UserCreateInput {
   id: ID
-  refreshTokens: RefreshTokenCreateManyWithoutOwnerInput
   name: String
   email: String
+  stars: Int
   phone: String!
-  posts: PostCreateManyWithoutAuthorInput
-  comments: CommentCreateManyWithoutAuthorInput
+  cover: String
+  avatar: String
+  channels: ChannelCreateManyWithoutCreatorInput
+  topics: TopicCreateManyWithoutCreatorInput
+  messages: MessageCreateManyWithoutCreatorInput
+  refreshTokens: RefreshTokenCreateManyWithoutOwnerInput
 }
 
-input UserCreateOneWithoutCommentsInput {
-  create: UserCreateWithoutCommentsInput
+input UserCreateOneWithoutChannelsInput {
+  create: UserCreateWithoutChannelsInput
   connect: UserWhereUniqueInput
 }
 
-input UserCreateOneWithoutPostsInput {
-  create: UserCreateWithoutPostsInput
+input UserCreateOneWithoutMessagesInput {
+  create: UserCreateWithoutMessagesInput
   connect: UserWhereUniqueInput
 }
 
@@ -808,31 +1243,61 @@ input UserCreateOneWithoutRefreshTokensInput {
   connect: UserWhereUniqueInput
 }
 
-input UserCreateWithoutCommentsInput {
-  id: ID
-  refreshTokens: RefreshTokenCreateManyWithoutOwnerInput
-  name: String
-  email: String
-  phone: String!
-  posts: PostCreateManyWithoutAuthorInput
+input UserCreateOneWithoutTopicsInput {
+  create: UserCreateWithoutTopicsInput
+  connect: UserWhereUniqueInput
 }
 
-input UserCreateWithoutPostsInput {
+input UserCreateWithoutChannelsInput {
   id: ID
-  refreshTokens: RefreshTokenCreateManyWithoutOwnerInput
   name: String
   email: String
+  stars: Int
   phone: String!
-  comments: CommentCreateManyWithoutAuthorInput
+  cover: String
+  avatar: String
+  topics: TopicCreateManyWithoutCreatorInput
+  messages: MessageCreateManyWithoutCreatorInput
+  refreshTokens: RefreshTokenCreateManyWithoutOwnerInput
+}
+
+input UserCreateWithoutMessagesInput {
+  id: ID
+  name: String
+  email: String
+  stars: Int
+  phone: String!
+  cover: String
+  avatar: String
+  channels: ChannelCreateManyWithoutCreatorInput
+  topics: TopicCreateManyWithoutCreatorInput
+  refreshTokens: RefreshTokenCreateManyWithoutOwnerInput
 }
 
 input UserCreateWithoutRefreshTokensInput {
   id: ID
   name: String
   email: String
+  stars: Int
   phone: String!
-  posts: PostCreateManyWithoutAuthorInput
-  comments: CommentCreateManyWithoutAuthorInput
+  cover: String
+  avatar: String
+  channels: ChannelCreateManyWithoutCreatorInput
+  topics: TopicCreateManyWithoutCreatorInput
+  messages: MessageCreateManyWithoutCreatorInput
+}
+
+input UserCreateWithoutTopicsInput {
+  id: ID
+  name: String
+  email: String
+  stars: Int
+  phone: String!
+  cover: String
+  avatar: String
+  channels: ChannelCreateManyWithoutCreatorInput
+  messages: MessageCreateManyWithoutCreatorInput
+  refreshTokens: RefreshTokenCreateManyWithoutOwnerInput
 }
 
 type UserEdge {
@@ -843,19 +1308,31 @@ type UserEdge {
 enum UserOrderByInput {
   id_ASC
   id_DESC
+  createdAt_ASC
+  createdAt_DESC
   name_ASC
   name_DESC
   email_ASC
   email_DESC
+  stars_ASC
+  stars_DESC
   phone_ASC
   phone_DESC
+  cover_ASC
+  cover_DESC
+  avatar_ASC
+  avatar_DESC
 }
 
 type UserPreviousValues {
   id: ID!
+  createdAt: DateTime!
   name: String
   email: String
+  stars: Int
   phone: String!
+  cover: String
+  avatar: String
 }
 
 type UserSubscriptionPayload {
@@ -877,31 +1354,38 @@ input UserSubscriptionWhereInput {
 }
 
 input UserUpdateInput {
-  refreshTokens: RefreshTokenUpdateManyWithoutOwnerInput
   name: String
   email: String
+  stars: Int
   phone: String
-  posts: PostUpdateManyWithoutAuthorInput
-  comments: CommentUpdateManyWithoutAuthorInput
+  cover: String
+  avatar: String
+  channels: ChannelUpdateManyWithoutCreatorInput
+  topics: TopicUpdateManyWithoutCreatorInput
+  messages: MessageUpdateManyWithoutCreatorInput
+  refreshTokens: RefreshTokenUpdateManyWithoutOwnerInput
 }
 
 input UserUpdateManyMutationInput {
   name: String
   email: String
+  stars: Int
   phone: String
+  cover: String
+  avatar: String
 }
 
-input UserUpdateOneRequiredWithoutCommentsInput {
-  create: UserCreateWithoutCommentsInput
-  update: UserUpdateWithoutCommentsDataInput
-  upsert: UserUpsertWithoutCommentsInput
+input UserUpdateOneRequiredWithoutChannelsInput {
+  create: UserCreateWithoutChannelsInput
+  update: UserUpdateWithoutChannelsDataInput
+  upsert: UserUpsertWithoutChannelsInput
   connect: UserWhereUniqueInput
 }
 
-input UserUpdateOneRequiredWithoutPostsInput {
-  create: UserCreateWithoutPostsInput
-  update: UserUpdateWithoutPostsDataInput
-  upsert: UserUpsertWithoutPostsInput
+input UserUpdateOneRequiredWithoutMessagesInput {
+  create: UserCreateWithoutMessagesInput
+  update: UserUpdateWithoutMessagesDataInput
+  upsert: UserUpsertWithoutMessagesInput
   connect: UserWhereUniqueInput
 }
 
@@ -912,43 +1396,79 @@ input UserUpdateOneRequiredWithoutRefreshTokensInput {
   connect: UserWhereUniqueInput
 }
 
-input UserUpdateWithoutCommentsDataInput {
-  refreshTokens: RefreshTokenUpdateManyWithoutOwnerInput
-  name: String
-  email: String
-  phone: String
-  posts: PostUpdateManyWithoutAuthorInput
+input UserUpdateOneRequiredWithoutTopicsInput {
+  create: UserCreateWithoutTopicsInput
+  update: UserUpdateWithoutTopicsDataInput
+  upsert: UserUpsertWithoutTopicsInput
+  connect: UserWhereUniqueInput
 }
 
-input UserUpdateWithoutPostsDataInput {
-  refreshTokens: RefreshTokenUpdateManyWithoutOwnerInput
+input UserUpdateWithoutChannelsDataInput {
   name: String
   email: String
+  stars: Int
   phone: String
-  comments: CommentUpdateManyWithoutAuthorInput
+  cover: String
+  avatar: String
+  topics: TopicUpdateManyWithoutCreatorInput
+  messages: MessageUpdateManyWithoutCreatorInput
+  refreshTokens: RefreshTokenUpdateManyWithoutOwnerInput
+}
+
+input UserUpdateWithoutMessagesDataInput {
+  name: String
+  email: String
+  stars: Int
+  phone: String
+  cover: String
+  avatar: String
+  channels: ChannelUpdateManyWithoutCreatorInput
+  topics: TopicUpdateManyWithoutCreatorInput
+  refreshTokens: RefreshTokenUpdateManyWithoutOwnerInput
 }
 
 input UserUpdateWithoutRefreshTokensDataInput {
   name: String
   email: String
+  stars: Int
   phone: String
-  posts: PostUpdateManyWithoutAuthorInput
-  comments: CommentUpdateManyWithoutAuthorInput
+  cover: String
+  avatar: String
+  channels: ChannelUpdateManyWithoutCreatorInput
+  topics: TopicUpdateManyWithoutCreatorInput
+  messages: MessageUpdateManyWithoutCreatorInput
 }
 
-input UserUpsertWithoutCommentsInput {
-  update: UserUpdateWithoutCommentsDataInput!
-  create: UserCreateWithoutCommentsInput!
+input UserUpdateWithoutTopicsDataInput {
+  name: String
+  email: String
+  stars: Int
+  phone: String
+  cover: String
+  avatar: String
+  channels: ChannelUpdateManyWithoutCreatorInput
+  messages: MessageUpdateManyWithoutCreatorInput
+  refreshTokens: RefreshTokenUpdateManyWithoutOwnerInput
 }
 
-input UserUpsertWithoutPostsInput {
-  update: UserUpdateWithoutPostsDataInput!
-  create: UserCreateWithoutPostsInput!
+input UserUpsertWithoutChannelsInput {
+  update: UserUpdateWithoutChannelsDataInput!
+  create: UserCreateWithoutChannelsInput!
+}
+
+input UserUpsertWithoutMessagesInput {
+  update: UserUpdateWithoutMessagesDataInput!
+  create: UserCreateWithoutMessagesInput!
 }
 
 input UserUpsertWithoutRefreshTokensInput {
   update: UserUpdateWithoutRefreshTokensDataInput!
   create: UserCreateWithoutRefreshTokensInput!
+}
+
+input UserUpsertWithoutTopicsInput {
+  update: UserUpdateWithoutTopicsDataInput!
+  create: UserCreateWithoutTopicsInput!
 }
 
 input UserWhereInput {
@@ -966,9 +1486,14 @@ input UserWhereInput {
   id_not_starts_with: ID
   id_ends_with: ID
   id_not_ends_with: ID
-  refreshTokens_every: RefreshTokenWhereInput
-  refreshTokens_some: RefreshTokenWhereInput
-  refreshTokens_none: RefreshTokenWhereInput
+  createdAt: DateTime
+  createdAt_not: DateTime
+  createdAt_in: [DateTime!]
+  createdAt_not_in: [DateTime!]
+  createdAt_lt: DateTime
+  createdAt_lte: DateTime
+  createdAt_gt: DateTime
+  createdAt_gte: DateTime
   name: String
   name_not: String
   name_in: [String!]
@@ -997,6 +1522,14 @@ input UserWhereInput {
   email_not_starts_with: String
   email_ends_with: String
   email_not_ends_with: String
+  stars: Int
+  stars_not: Int
+  stars_in: [Int!]
+  stars_not_in: [Int!]
+  stars_lt: Int
+  stars_lte: Int
+  stars_gt: Int
+  stars_gte: Int
   phone: String
   phone_not: String
   phone_in: [String!]
@@ -1011,12 +1544,46 @@ input UserWhereInput {
   phone_not_starts_with: String
   phone_ends_with: String
   phone_not_ends_with: String
-  posts_every: PostWhereInput
-  posts_some: PostWhereInput
-  posts_none: PostWhereInput
-  comments_every: CommentWhereInput
-  comments_some: CommentWhereInput
-  comments_none: CommentWhereInput
+  cover: String
+  cover_not: String
+  cover_in: [String!]
+  cover_not_in: [String!]
+  cover_lt: String
+  cover_lte: String
+  cover_gt: String
+  cover_gte: String
+  cover_contains: String
+  cover_not_contains: String
+  cover_starts_with: String
+  cover_not_starts_with: String
+  cover_ends_with: String
+  cover_not_ends_with: String
+  avatar: String
+  avatar_not: String
+  avatar_in: [String!]
+  avatar_not_in: [String!]
+  avatar_lt: String
+  avatar_lte: String
+  avatar_gt: String
+  avatar_gte: String
+  avatar_contains: String
+  avatar_not_contains: String
+  avatar_starts_with: String
+  avatar_not_starts_with: String
+  avatar_ends_with: String
+  avatar_not_ends_with: String
+  channels_every: ChannelWhereInput
+  channels_some: ChannelWhereInput
+  channels_none: ChannelWhereInput
+  topics_every: TopicWhereInput
+  topics_some: TopicWhereInput
+  topics_none: TopicWhereInput
+  messages_every: MessageWhereInput
+  messages_some: MessageWhereInput
+  messages_none: MessageWhereInput
+  refreshTokens_every: RefreshTokenWhereInput
+  refreshTokens_some: RefreshTokenWhereInput
+  refreshTokens_none: RefreshTokenWhereInput
   AND: [UserWhereInput!]
   OR: [UserWhereInput!]
   NOT: [UserWhereInput!]

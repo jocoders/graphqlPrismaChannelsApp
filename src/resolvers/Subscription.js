@@ -1,14 +1,30 @@
 import getUserId from '../utils/getUserId'
 
 const Subscription = {
-  comment: {
-    subscribe(parent, { postId }, { prisma }, info) {
-      return prisma.subscription.comment(
+  channel: {
+    subscribe(parent, args, { prisma }, info) {
+      return prisma.subscription.channel(
         {
           where: {
             node: {
-              post: {
-                id: postId
+              title: args.title
+            }
+          }
+        },
+        info
+      )
+    }
+  },
+  myChannel: {
+    subscribe(parent, args, { prisma, request }, info) {
+      const userId = getUserId(request)
+
+      return prisma.subscription.channel(
+        {
+          where: {
+            node: {
+              creator: {
+                id: userId
               }
             }
           }
@@ -17,30 +33,14 @@ const Subscription = {
       )
     }
   },
-  post: {
-    subscribe(parent, args, { prisma }, info) {
-      return prisma.subscription.post(
+  topic: {
+    subscribe(parent, { channelId }, { prisma }, info) {
+      return prisma.subscription.topic(
         {
           where: {
             node: {
-              published: true
-            }
-          }
-        },
-        info
-      )
-    }
-  },
-  myPost: {
-    subscribe(parent, args, { prisma, request }, info) {
-      const userId = getUserId(request)
-
-      return prisma.subscription.post(
-        {
-          where: {
-            node: {
-              author: {
-                id: userId
+              channel: {
+                id: channelId
               }
             }
           }

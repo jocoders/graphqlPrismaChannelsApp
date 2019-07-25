@@ -3,8 +3,9 @@ import Query from './Query'
 import Mutation from './Mutation'
 import Subscription from './Subscription'
 import User from './User'
-import Post from './Post'
-import Comment from './Comment'
+import Channel from './Channel'
+import Topic from './Topic'
+import Message from './Message'
 import RefreshToken from './RefreshToken'
 
 const resolvers = {
@@ -12,9 +13,10 @@ const resolvers = {
   Mutation,
   Subscription,
   User,
-  Post,
   RefreshToken,
-  Comment
+  Channel,
+  Topic,
+  Message
 }
 
 const fragmentReplacements = extractFragmentReplacements(resolvers)
